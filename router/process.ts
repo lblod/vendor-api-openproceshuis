@@ -18,6 +18,7 @@ import {
   enrichRequestBodyWithContext,
   errorOnCustomContextInRequest,
   errorOnResourceUriMissingInRequest,
+  validateDiagramFilesInRequestBody,
   validatePatchProcessRequestBody,
   validatePostProcessRequestBody,
   validatePutProcessRequestBody,
@@ -39,6 +40,7 @@ processRouter.post('/', async (req: Request, res: Response) => {
   errorOnCustomContextInRequest(req);
   const resourceUri = errorOnResourceUriMissingInRequest(req);
   validatePostProcessRequestBody(req);
+  await validateDiagramFilesInRequestBody(req);
 
   const enrichedBody = enrichRequestBodyWithContext(req, {
     versionNumberForDiagramList: 0,
@@ -72,6 +74,7 @@ processRouter.patch('/', async (req: Request, res: Response) => {
   await errorOnProcessNotOwnedByVendor(resourceUri, vendorUri);
 
   validatePatchProcessRequestBody(req);
+  await validateDiagramFilesInRequestBody(req);
 
   const currentDiagramListCount =
     await countOfCurrentDiagramListsOnProcess(resourceUri);
@@ -111,6 +114,7 @@ processRouter.put('/', async (req: Request, res: Response) => {
   await errorOnProcessNotOwnedByVendor(resourceUri, vendorUri);
 
   validatePutProcessRequestBody(req);
+  await validateDiagramFilesInRequestBody(req);
 
   const currentDiagramListCount =
     await countOfCurrentDiagramListsOnProcess(resourceUri);

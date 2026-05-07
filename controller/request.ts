@@ -12,6 +12,7 @@ import {
   EnrichedBodyOptions,
 } from '../types';
 import { diagramsToContext, linksToContext } from '../util/transform-context';
+import { fileWithUriExists } from './file';
 
 export function getSessionUriFromRequest(request: Request): string {
   const HEADER_MU_SESSION_ID = 'mu-session-id';
@@ -169,6 +170,32 @@ function errorOnUseOfUnknownRequestBodyJsonKeys(request: Request) {
         );
       }
     });
+}
+
+export async function validateDiagramFilesInRequestBody(request: Request) {
+  const diagrams = request.body['diagrams'];
+
+  if (!diagrams || diagrams.length === 0) {
+    return;
+  }
+
+  let fileUris = diagrams;
+  if (typeof diagrams[0] === 'object' && 'fileUri' in diagrams[0]) {
+    fileUris = diagrams.map(
+      (diagramData: DiagramListItemRequestBody) => diagramData.fileUri,
+    );
+  }
+
+  for (const fileUri of fileUris) {
+    const isExistingFile = await fileWithUriExists(fileUri);
+    if (!isExistingFile) {
+      throw new HttpError(
+        `The fileUri "${fileUri}" is not a know uri in our system.`,
+        400,
+        'Ensure all fileUri values where uploaded to the system.',
+      );
+    }
+  }
 }
 
 export function validatePostProcessRequestBody(request: Request) {
