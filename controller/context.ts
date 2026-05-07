@@ -108,7 +108,6 @@ export async function getExpandedRequestBody(
     const mainNode = expanded[0];
     log.debug(
       'Validation passed: Node with linked data for given request body.',
-      mainNode,
     );
     return mainNode;
   } catch (error) {

@@ -42,7 +42,7 @@ export async function createNewProcess(
       process: processUri,
     },
   );
-  log.info('Added process to bestuurseenheid.', {
+  log.debug('Added process to bestuurseenheid.', {
     process: processUri,
     bestuurseenheid: bestuurseenheid.uri,
   });
@@ -143,7 +143,7 @@ export async function archiveProcess(processUri: string): Promise<void> {
       process: processUri,
     },
   );
-  log.info('set archived status on process.', {
+  log.debug('Set archived status on process.', {
     process: processUri,
     status: archivedStatusUri,
   });
@@ -207,7 +207,7 @@ export async function removeFileFromProcess(
       file: fileUri,
     },
   );
-  log.info('Archived file on process process', {
+  log.debug('Archived file on process process', {
     process: processUri,
     file: fileUri,
   });
@@ -279,7 +279,7 @@ export async function countOfCurrentDiagramListsOnProcess(
 
     return parseInt(count) ?? 0;
   } catch (error) {
-    log.info(
+    log.debug(
       'Could not fetch current diagram list count for process. Returning 0',
       {
         process: processUri,
