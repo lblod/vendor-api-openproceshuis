@@ -6,7 +6,11 @@ import { processContext } from '../context';
 import isUrl from '../util/is-url';
 import isEmail from '../util/is-email';
 import isMaxLength from '../util/is-max-length';
-import { EnrichedBody, EnrichedBodyOptions } from '../types';
+import {
+  DiagramListItemRequestBody,
+  EnrichedBody,
+  EnrichedBodyOptions,
+} from '../types';
 import { diagramsToContext, linksToContext } from '../util/transform-context';
 
 export function getSessionUriFromRequest(request: Request): string {
@@ -83,11 +87,12 @@ const processResourceKeys = () => {
   const valueIsStringAndNotEmpty = (value: unknown) =>
     value && typeof value === 'string' && value.trim() !== '';
   const valueIsArrayOfUris = (value: unknown) =>
-    Array.isArray(value) && value.every((uri: string) => typeof uri === 'string' && isUrl(uri));
+    Array.isArray(value) &&
+    value.every((uri: string) => typeof uri === 'string' && isUrl(uri));
   const valueIsArrayDiagramValues = (value: unknown) =>
     Array.isArray(value) &&
     value.every(
-      (diagramObject: { fileUri: string; position: number }) =>
+      (diagramObject: DiagramListItemRequestBody) =>
         isUrl(diagramObject.fileUri) &&
         typeof diagramObject.position === 'number',
     );

@@ -1,7 +1,11 @@
 import { uuid } from 'mu';
+import { DiagramListItemRequestBody } from '../types';
 
-export function diagramsToContext(fileUris: Array<string>, versionNumber = 0) {
-  if (!fileUris || fileUris.length === 0) {
+export function diagramsToContext(
+  diagramsData: Array<DiagramListItemRequestBody | string>,
+  versionNumber = 0,
+) {
+  if (!diagramsData || diagramsData.length === 0) {
     return null;
   }
 
@@ -15,14 +19,29 @@ export function diagramsToContext(fileUris: Array<string>, versionNumber = 0) {
     version: `v0.0.${versionNumber}`,
     created: now,
     modified: now,
-    'diagram-list-items': fileUris.map((uri, index) => {
+    'diagram-list-items': diagramsData.map((uriOrObject, index) => {
+      let position = index + 1;
+      let fileUri = uriOrObject;
+      if (
+        typeof uriOrObject === 'object' &&
+        typeof uriOrObject.position === 'number'
+      ) {
+        position = uriOrObject.position;
+      }
+      if (
+        typeof uriOrObject === 'object' &&
+        typeof uriOrObject.fileUri === 'string'
+      ) {
+        fileUri = uriOrObject.fileUri;
+      }
+
       const listItemNodeId = uuid();
       return {
         type: 'DiagramListItem',
         '@id': listItemNodeId,
         uuid: listItemNodeId,
-        position: index + 1,
-        diagramFile: uri,
+        position: position,
+        diagramFile: fileUri,
         created: now,
         modified: now,
       };

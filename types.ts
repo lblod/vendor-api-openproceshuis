@@ -14,3 +14,8 @@ export type EnrichedBody = {
 export type EnrichedBodyOptions = {
   versionNumberForDiagramList?: number;
 };
+
+export type DiagramListItemRequestBody = {
+  fileUri: string;
+  position: number;
+};
