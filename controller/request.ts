@@ -6,8 +6,13 @@ import { processContext } from '../context';
 import isUrl from '../util/is-url';
 import isEmail from '../util/is-email';
 import isMaxLength from '../util/is-max-length';
-import { EnrichedBody, EnrichedBodyOptions } from '../types';
+import {
+  DiagramListItemRequestBody,
+  EnrichedBody,
+  EnrichedBodyOptions,
+} from '../types';
 import { diagramsToContext, linksToContext } from '../util/transform-context';
+import { fileWithUriExists } from './file';
 
 export function getSessionUriFromRequest(request: Request): string {
   const HEADER_MU_SESSION_ID = 'mu-session-id';
@@ -83,7 +88,15 @@ const processResourceKeys = () => {
   const valueIsStringAndNotEmpty = (value: unknown) =>
     value && typeof value === 'string' && value.trim() !== '';
   const valueIsArrayOfUris = (value: unknown) =>
-    Array.isArray(value) && value.every((uri: string) => isUrl(uri));
+    Array.isArray(value) &&
+    value.every((uri: string) => typeof uri === 'string' && isUrl(uri));
+  const valueIsArrayDiagramValues = (value: unknown) =>
+    Array.isArray(value) &&
+    value.every(
+      (diagramObject: DiagramListItemRequestBody) =>
+        isUrl(diagramObject.fileUri) &&
+        typeof diagramObject.position === 'number',
+    );
 
   const processKeys = {
     title: {
@@ -112,8 +125,10 @@ const processResourceKeys = () => {
       requiredValueAsString: 'an array of uris',
     },
     diagrams: {
-      validate: (value: Array<string>) => valueIsArrayOfUris(value),
-      requiredValueAsString: 'an array of uris',
+      validate: (value: Array<string>) =>
+        valueIsArrayOfUris(value) || valueIsArrayDiagramValues(value),
+      requiredValueAsString:
+        'an array of uris or array of objects with "fileUri" and "position" of the file',
     },
     attachments: {
       validate: (value: Array<string>) => valueIsArrayOfUris(value),
@@ -157,6 +172,32 @@ function errorOnUseOfUnknownRequestBodyJsonKeys(request: Request) {
     });
 }
 
+export async function validateDiagramFilesInRequestBody(request: Request) {
+  const diagrams = request.body['diagrams'];
+
+  if (!diagrams || diagrams.length === 0) {
+    return;
+  }
+
+  let fileUris = diagrams;
+  if (typeof diagrams[0] === 'object' && 'fileUri' in diagrams[0]) {
+    fileUris = diagrams.map(
+      (diagramData: DiagramListItemRequestBody) => diagramData.fileUri,
+    );
+  }
+
+  for (const fileUri of fileUris) {
+    const isExistingFile = await fileWithUriExists(fileUri);
+    if (!isExistingFile) {
+      throw new HttpError(
+        `The fileUri "${fileUri}" is not a know uri in our system.`,
+        400,
+        'Ensure all fileUri values where uploaded to the system.',
+      );
+    }
+  }
+}
+
 export function validatePostProcessRequestBody(request: Request) {
   errorOnUseOfUnknownRequestBodyJsonKeys(request);
 
@@ -175,7 +216,7 @@ export function validatePostProcessRequestBody(request: Request) {
     throw new HttpError(
       'Property "diagrams" is required in the body.',
       400,
-      'Provide the "diagrams" property as an array with a single uri in the body.',
+      'Provide the "diagrams" property as an array of uri\'s OR as an array of objects with "fileUri" and "position" of the file in the body.',
     );
   }
 }

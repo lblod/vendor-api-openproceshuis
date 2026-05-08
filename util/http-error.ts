@@ -13,7 +13,7 @@ export class HttpError extends Error {
       this.status = 500;
     }
     if (!this.description) {
-      this.description = null;
+      this.description = undefined;
     }
     log.error(message, {
       description,

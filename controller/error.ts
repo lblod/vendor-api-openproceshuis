@@ -44,7 +44,7 @@ export async function handleErrorForMonitoring(
     triggerMail = !isMailSendInGracePeriod;
   }
 
-  log.info('Creating an error resource', {
+  log.debug('Creating an error resource', {
     statusCode,
     title,
     description: message,

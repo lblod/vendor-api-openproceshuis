@@ -1,7 +1,13 @@
 import pinoHttp from 'pino-http';
 
 export const pino = pinoHttp({
-  autoLogging: true,
+  autoLogging: false,
+  customLogLevel: function (req, res, err) {
+    if (res.statusCode >= 400 && res.statusCode < 500) return 'warn';
+    if (res.statusCode >= 500 || err) return 'error';
+    if (res.statusCode >= 300 && res.statusCode < 400) return 'silent';
+    return 'debug';
+  },
   level: process.env.LOG_LEVEL || 'info',
   formatters: {
     level: (label: string) => {
